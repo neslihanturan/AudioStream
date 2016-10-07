@@ -7,10 +7,13 @@ import android.view.View;
 import android.widget.Button;
 
 import nes.com.audiostreamer.R;
+import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.service.BackgroundService;
+import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class MainActivity extends AppCompatActivity {
-    boolean isPlaying=false;
+    SingleMediaPlayer mediaPlayer;
+    String songUrl = "https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,12 +24,15 @@ public class MainActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isPlaying = !isPlaying;
-                if(isPlaying){
-                    startService(new Intent(MainActivity.this, BackgroundService.class));
-                }else{
-
-                }
+                startService(new Intent(MainActivity.this, BackgroundService.class));
+            }
+        });
+        Button pauseButton = (Button)findViewById(R.id.pauseButton);
+        pauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
+                MediaPlayerUtil.pause(mediaPlayer);
             }
         });
     }

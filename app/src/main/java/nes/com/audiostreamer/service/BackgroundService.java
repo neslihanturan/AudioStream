@@ -9,46 +9,39 @@ import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
-
-import java.io.IOException;
 
 import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.main.Constant;
+import nes.com.audiostreamer.model.SingleMediaPlayer;
+import nes.com.audiostreamer.util.MediaPlayerUtil;
 
-public class BackgroundService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener{
+public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener{
     MediaPlayer mediaPlayer = null;
+    Notification notification;
     String songUrl = "https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg";
-    //String songName= "Black in Black";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        try {
-            mediaPlayer.setDataSource(songUrl);
-            mediaPlayer.prepareAsync(); //to make it on separate thread
-            mediaPlayer.setOnPreparedListener(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        MediaPlayerUtil.start(mediaPlayer,songUrl);
 
         //Play intent
         Intent playIntent = new Intent();
         playIntent.setAction(Constant.ACTION_PLAY);
+        playIntent.putExtra("songUrl",songUrl);
         PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 12345, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         //Stop intent
         Intent stopIntent = new Intent();
         stopIntent.setAction(Constant.ACTION_STOP);
+        stopIntent.putExtra("songUrl",songUrl);
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 12345, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         //Close intent
         Intent closeIntent = new Intent();
         closeIntent.setAction(Constant.ACTION_CLOSE);
+        closeIntent.putExtra("songUrl",songUrl);
         PendingIntent closePendingIntent = PendingIntent.getBroadcast(this, 12345, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification notification = new NotificationCompat.Builder(this)
+        notification = new NotificationCompat.Builder(this)
                 .setContentTitle("Music Player")
                 .setTicker("Music Player")
                 .setContentText("Black in Black")
@@ -67,18 +60,12 @@ public class BackgroundService extends Service implements MediaPlayer.OnPrepared
         return START_STICKY;
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        Log.d("i","music is playing");
-        mp.start();
-    }
 
     @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        mp.release();
-        mp = null;
-        return false;
+    public void onDestroy() {
+        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
     }
+
 
     @Nullable
     @Override
@@ -86,5 +73,34 @@ public class BackgroundService extends Service implements MediaPlayer.OnPrepared
         return null;
     }
 
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                // resume playback
+                MediaPlayerUtil.start(mediaPlayer, songUrl);
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS:
+                // Lost focus for an unbounded amount of time: stop playback and release media player
+                MediaPlayerUtil.stop(mediaPlayer);
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                // Lost focus for a short time, but we have to stop
+                // playback. We don't release the media player because playback
+                // is likely to resume
+                MediaPlayerUtil.pause(mediaPlayer);
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                // Lost focus for a short time, but it's ok to keep playing
+                // at an attenuated level
+                MediaPlayerUtil.turnVolumeToLow(mediaPlayer);
+                break;
+        }
+
+    }
 
 }
