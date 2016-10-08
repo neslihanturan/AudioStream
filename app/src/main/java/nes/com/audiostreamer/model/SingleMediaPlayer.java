@@ -6,6 +6,9 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import nes.com.audiostreamer.service.BackgroundService;
+import nes.com.audiostreamer.util.MediaPlayerUtil;
+
 
 /**
  * Created by nesli on 07.10.2016.
@@ -13,7 +16,6 @@ import java.io.IOException;
 
 public class SingleMediaPlayer extends MediaPlayer {
     private static SingleMediaPlayer mInstance = null;
-
 
     private SingleMediaPlayer(String songUrl){
         this.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -26,6 +28,7 @@ public class SingleMediaPlayer extends MediaPlayer {
                     Log.d("i","music is playing");
                     if(!mp.isPlaying()) {
                         mp.start();
+                        MediaPlayerUtil.isMediaPlayerReady = true;
                     }
                 }
             });
@@ -50,6 +53,10 @@ public class SingleMediaPlayer extends MediaPlayer {
         return mInstance;
     }
 
+    public static void nullSingleton() {
+        mInstance = null;
+    }
+
     public void setSong(String song){
         //later
     }
@@ -58,4 +65,5 @@ public class SingleMediaPlayer extends MediaPlayer {
         //later
         return "";
     }
+
 }

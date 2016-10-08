@@ -19,7 +19,6 @@ public class MusicIntentReceiver extends BroadcastReceiver {
     MediaPlayer mediaPlayer = null;
     String songUrl;
 
-
     @Override
     public void onReceive(Context ctx, Intent intent) {
         String action = intent.getAction();

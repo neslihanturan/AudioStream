@@ -23,8 +23,11 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        MediaPlayerUtil.start(mediaPlayer,songUrl);
+        startForegroundNotification();
+        return START_STICKY;
+    }
 
+    public void startForegroundNotification(){
         //Play intent
         Intent playIntent = new Intent();
         playIntent.setAction(Constant.ACTION_PLAY);
@@ -56,10 +59,7 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
                 .build();
 
         startForeground(Constant.NOTIFICATION_ID, notification);
-
-        return START_STICKY;
     }
-
 
     @Override
     public void onDestroy() {
@@ -79,19 +79,19 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 // resume playback
-                MediaPlayerUtil.start(mediaPlayer, songUrl);
+                MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl), songUrl);
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 // Lost focus for an unbounded amount of time: stop playback and release media player
-                MediaPlayerUtil.stop(mediaPlayer);
+                MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 // Lost focus for a short time, but we have to stop
                 // playback. We don't release the media player because playback
                 // is likely to resume
-                MediaPlayerUtil.pause(mediaPlayer);
+                MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
@@ -103,4 +103,9 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
 
     }
 
+ /*   @Override
+    public void onMediaPlayerPrepared() {
+        startForegroundNotification();      //start when media player is prepared.
+    }
+    */
 }

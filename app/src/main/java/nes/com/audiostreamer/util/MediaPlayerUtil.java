@@ -15,18 +15,15 @@ import nes.com.audiostreamer.service.BackgroundService;
 
 
 public final class MediaPlayerUtil{
+    public static boolean isMediaPlayerReady = false;
 
     //can be called for resume playback and start to play
     public static void start(MediaPlayer mediaPlayer, String songUrl){
-        if (mediaPlayer == null){
-            mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
-        }
-        else if (!mediaPlayer.isPlaying()) {
+        if (isMediaPlayerReady && !mediaPlayer.isPlaying()) {
             mediaPlayer.start();
+            mediaPlayer.setVolume(1.0f, 1.0f);
         }
-        mediaPlayer.setVolume(1.0f, 1.0f);
     }
-
 
     public static void pause(MediaPlayer mediaPlayer){
         if (mediaPlayer.isPlaying()) {
@@ -39,7 +36,8 @@ public final class MediaPlayerUtil{
             mediaPlayer.stop();
         }
         mediaPlayer.release();
-        mediaPlayer = null;
+        SingleMediaPlayer.nullSingleton();
+        isMediaPlayerReady = false;
     }
 
     public static void turnVolumeToLow(MediaPlayer mediaPlayer){

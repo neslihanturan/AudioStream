@@ -18,21 +18,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //android.os.Debug.waitForDebugger();
         setContentView(R.layout.activity_main);
         Button playButton = (Button)findViewById(R.id.playButton);
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
                 startService(new Intent(MainActivity.this, BackgroundService.class));
+                MediaPlayerUtil.start(mediaPlayer, songUrl);
             }
         });
         Button pauseButton = (Button)findViewById(R.id.pauseButton);
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
-                MediaPlayerUtil.pause(mediaPlayer);
+                MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
             }
         });
     }
