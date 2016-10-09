@@ -18,7 +18,7 @@ public final class MediaPlayerUtil{
     public static boolean isMediaPlayerReady = false;
 
     //can be called for resume playback and start to play
-    public static void start(MediaPlayer mediaPlayer, String songUrl){
+    public static void start(MediaPlayer mediaPlayer){
         if (isMediaPlayerReady && !mediaPlayer.isPlaying()) {
             mediaPlayer.start();
             mediaPlayer.setVolume(1.0f, 1.0f);

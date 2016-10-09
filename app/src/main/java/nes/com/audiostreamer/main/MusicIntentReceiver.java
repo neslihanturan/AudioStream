@@ -30,7 +30,7 @@ public class MusicIntentReceiver extends BroadcastReceiver {
                 android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
         }else{
             if(Constant.ACTION_PLAY.equals(action)) {
-                MediaPlayerUtil.start(mediaPlayer,songUrl);
+                MediaPlayerUtil.start(mediaPlayer);
                 Log.v("i","Pressed Play");
             } else if(Constant.ACTION_STOP.equals(action)) {
                 MediaPlayerUtil.pause(mediaPlayer);
