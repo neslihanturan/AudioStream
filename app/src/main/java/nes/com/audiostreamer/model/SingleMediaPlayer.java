@@ -53,7 +53,7 @@ public class SingleMediaPlayer extends MediaPlayer {
         return mInstance;
     }
 
-    public static void nullSingleton() {
+    public static void nullifySingleMediaPlayer() {
         mInstance = null;
     }
 

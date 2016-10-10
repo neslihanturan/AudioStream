@@ -1,13 +1,8 @@
 package nes.com.audiostreamer.util;
 
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.util.Log;
-
-import java.io.IOException;
 
 import nes.com.audiostreamer.model.SingleMediaPlayer;
-import nes.com.audiostreamer.service.BackgroundService;
 
 /**
  * Created by nesli on 07.10.2016.
@@ -36,7 +31,7 @@ public final class MediaPlayerUtil{
             mediaPlayer.stop();
         }
         mediaPlayer.release();
-        SingleMediaPlayer.nullSingleton();
+        SingleMediaPlayer.nullifySingleMediaPlayer();
         isMediaPlayerReady = false;
     }
 

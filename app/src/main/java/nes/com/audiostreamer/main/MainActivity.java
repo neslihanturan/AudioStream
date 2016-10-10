@@ -19,87 +19,106 @@ import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class MainActivity extends AppCompatActivity {
-    SingleMediaPlayer mediaPlayer;
-    String songUrl = "https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg";
-    private List<Song> songList;
-    boolean isPlaying = false;
-    boolean isNewSong = false;
-    public static int position = -1;
-    public static int oldPosition = -1;
-    ListView songListView;
+    public static int position = 0;
 
+    private List<Song> songList;
+    private boolean isPlaying = false;
+    private boolean isNewSong = false;
+
+    private Button playButton;
+    private Button prevButton;
+    private Button nextButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //////////////////////////////////////////////////
-        songList = new ArrayList<Song>();
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        /////////////////////////////////////////////////
-        final Button playButton = (Button)findViewById(R.id.playButton);
-        startService(new Intent(MainActivity.this, BackgroundService.class));
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
-                if(isNewSong) {         //stop to recreate
-                    MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl)); //stop exsisting media player obj
-                    songUrl = songList.get(position).getUrl();      //change current songUrl
-                    //songListView.setItemChecked(position, true);  //select listview item
-                    isPlaying = false;      //not playing yet
-                    isNewSong = false;      //not set until detect a new song
 
-                }
-                if(isPlaying) {     //pause
-                    MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
-                    playButton.setText(">");
-                }else{              //continue or recreate
-                    startService(new Intent(MainActivity.this, BackgroundService.class));
-                    MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
-                    playButton.setText("||");
-                }
-                isPlaying=!isPlaying;
-            }
-        });
+        setSongManual();        // TODO: get real data
+        playButton = (Button)findViewById(R.id.playButton);
+        prevButton = (Button)findViewById(R.id.prevButton);
+        nextButton = (Button)findViewById(R.id.nextButton);
 
-
-        songListView = (ListView) findViewById(R.id.listView);
+        ListView songListView = (ListView) findViewById(R.id.listView);
         final SongAdapter adapter = new SongAdapter(this, songList);
         songListView.setAdapter(adapter);
-        // set zeroth element selected default
-        //songListView.performItemClick( songListView.getAdapter().getView(0, null, null), 0, songListView.getAdapter().getItemId(0));
         songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                adapter.setSelectedIndex(position);
-                adapter.notifyDataSetChanged();
-                songChangeCheck(position);
-                //changeListItemStatus((TextView) view.findViewById(R.id.playing));
-                playButton.performClick();
+                prepareToNewSong(adapter, position);
             }
         });
 
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playOrPauseSong();
+            }
+        });
+        prevButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = ((MainActivity.position-1 < 0) ? songList.size()-1 : MainActivity.position-1);  //update new position to next, if EOL turn to end
+                prepareToNewSong(adapter, position);
+            }
+        });
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = (MainActivity.position+1)%songList.size();       //update new position to next, if EOL turn to beginning
+                prepareToNewSong(adapter, position);
+            }
+        });
     }
 
-    public void songChangeCheck(int position){
+    public void prepareToNewSong(SongAdapter adapter, int position){
+        adapter.setSelectedIndex(position);
+        adapter.notifyDataSetChanged();
+        songChangeCheck(position);
+        playButton.performClick();
+    }
+
+    public void songChangeCheck(int position){      //checks if the song changed
         if( MainActivity.position != position) {
-            MainActivity.oldPosition = MainActivity.position;
             MainActivity.position = position;
             isNewSong = true;           //we need to recreate mediaplayer singletone with new song
         }
     }
 
-    /*public void changeListItemStatus(TextView textView) {
-        if(isNewSong || !isPlaying) {   //new song but not yet playing, or paused song
-            textView.setText("||");
-        }else{
-            textView.setText(">");
+    public void playOrPauseSong(){
+        String songUrl = songList.get(position).getUrl();
+        if(isNewSong) {         //stop to recreate
+            MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl)); //stop exsisting media player obj
+            isPlaying = false;      //not playing yet
+            isNewSong = false;      //not set until detect a new song
         }
-    }*/
+        if(isPlaying) {     //pause
+            MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
+            playButton.setText(">");        //update button look
+        }else{              //continue or recreate
+            startService(new Intent(MainActivity.this, BackgroundService.class));
+            MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
+            playButton.setText("||");       //update button look
+        }
+        isPlaying=!isPlaying;
+    }
+
+    public void setSongManual(){
+        songList = new ArrayList<>();
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Lucky One","George Woods","https://i.cloudup.com/kitGU79aWK.mp3",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -108,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         // The activity has become visible (it is now "resumed").
     }
     @Override
