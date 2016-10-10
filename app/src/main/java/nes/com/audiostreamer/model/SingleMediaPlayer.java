@@ -24,19 +24,19 @@ public class SingleMediaPlayer extends MediaPlayer {
             this.prepareAsync(); //to make it on separate thread
             this.setOnPreparedListener(new OnPreparedListener() {
                 @Override
-                public void onPrepared(MediaPlayer mp) {
+                public void onPrepared(MediaPlayer mediaPlayer) {
                     Log.d("i","music is playing");
-                    if(!mp.isPlaying()) {
-                        mp.start();
+                    if(!mediaPlayer.isPlaying()) {
+                        mediaPlayer.start();
                         MediaPlayerUtil.isMediaPlayerReady = true;
                     }
                 }
             });
             this.setOnErrorListener(new OnErrorListener() {
                 @Override
-                public boolean onError(MediaPlayer mp, int what, int extra) {
-                    mp.release();
-                    mp = null;
+                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                    mediaPlayer.release();
+                    mediaPlayer = null;
                     return false;
                 }
             });
@@ -58,11 +58,11 @@ public class SingleMediaPlayer extends MediaPlayer {
     }
 
     public void setSong(String song){
-        //later
+        //TODO
     }
 
     public String getSong(String song){
-        //later
+        //TODO
         return "";
     }
 

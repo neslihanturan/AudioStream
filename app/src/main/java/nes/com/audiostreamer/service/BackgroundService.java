@@ -16,14 +16,15 @@ import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener{
-    MediaPlayer mediaPlayer = null;
-    Notification notification;
-    String songUrl = "https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg";
+    private MediaPlayer mediaPlayer = null;
+    private Notification notification;
+    private String songUrl;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         startForegroundNotification();
+        songUrl = getSongUrl(intent);
         return START_STICKY;
     }
 
@@ -101,6 +102,10 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
                 break;
         }
 
+    }
+
+    public String getSongUrl(Intent intent){
+        return intent.getStringExtra("songUrl");
     }
 
 }

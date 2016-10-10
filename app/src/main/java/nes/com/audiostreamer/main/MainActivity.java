@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button playButton;
     private Button prevButton;
     private Button nextButton;
+    private Intent serviceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         playButton = (Button)findViewById(R.id.playButton);
         prevButton = (Button)findViewById(R.id.prevButton);
         nextButton = (Button)findViewById(R.id.nextButton);
+        serviceIntent = new Intent(MainActivity.this, BackgroundService.class);
 
         ListView songListView = (ListView) findViewById(R.id.listView);
         final SongAdapter adapter = new SongAdapter(this, songList);
@@ -96,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
             MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
             playButton.setText(">");        //update button look
         }else{              //continue or recreate
-            startService(new Intent(MainActivity.this, BackgroundService.class));
+            serviceIntent.putExtra("songUrl", songUrl);     //pass url to service
+            this.startService(serviceIntent);        //start service
             MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
             playButton.setText("||");       //update button look
         }

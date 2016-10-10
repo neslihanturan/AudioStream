@@ -20,10 +20,8 @@ public class SongAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private List<Song> songList;
     private int selectedIndex;
-    Activity activity;
 
     public SongAdapter(Activity activity, List<Song> songList) {
-        this.activity = activity;
         inflater = (LayoutInflater) activity.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE);
         this.songList = songList;
@@ -53,7 +51,6 @@ public class SongAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.line_of_listwiev, null);
         }
 
-        //convertView = inflater.inflate(R.layout.line_of_listwiev, null);
         TextView titleText =
                 (TextView) convertView.findViewById(R.id.title);
         TextView artistText =
