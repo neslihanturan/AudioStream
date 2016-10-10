@@ -12,10 +12,11 @@ import android.support.v4.app.NotificationCompat;
 
 import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.main.Constant;
+import nes.com.audiostreamer.model.PlayerReadyCallback;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
-public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener{
+public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener, PlayerReadyCallback{
     MediaPlayer mediaPlayer = null;
     Notification notification;
     String songUrl = "https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg";
@@ -63,7 +64,7 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
 
     @Override
     public void onDestroy() {
-        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
+        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl, this));
     }
 
 
@@ -79,19 +80,19 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 // resume playback
-                MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
+                MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl, this));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 // Lost focus for an unbounded amount of time: stop playback and release media player
-                MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
+                MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl, this));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 // Lost focus for a short time, but we have to stop
                 // playback. We don't release the media player because playback
                 // is likely to resume
-                MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
+                MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl, this));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
@@ -103,4 +104,8 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
 
     }
 
+    @Override
+    public void mediaPlayerPrepared() {
+
+    }
 }

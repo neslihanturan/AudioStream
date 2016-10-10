@@ -6,7 +6,6 @@ import android.util.Log;
 
 import java.io.IOException;
 
-import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 
@@ -16,9 +15,11 @@ import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class SingleMediaPlayer extends MediaPlayer {
     private static SingleMediaPlayer mInstance = null;
+    private PlayerReadyCallback callback;
 
-    private SingleMediaPlayer(String songUrl){
+    private SingleMediaPlayer(String songUrl, PlayerReadyCallback callback){
         this.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        this.callback = callback;
         try {
             this.setDataSource(songUrl);
             this.prepareAsync(); //to make it on separate thread
@@ -28,7 +29,8 @@ public class SingleMediaPlayer extends MediaPlayer {
                     Log.d("i","music is playing");
                     if(!mp.isPlaying()) {
                         mp.start();
-                        MediaPlayerUtil.isMediaPlayerReady = true;
+                        //MediaPlayerUtil.isMediaPlayerReady = true;
+                        SingleMediaPlayer.this.callback.mediaPlayerPrepared();
                     }
                 }
             });
@@ -45,10 +47,10 @@ public class SingleMediaPlayer extends MediaPlayer {
         }
     }
 
-    public static SingleMediaPlayer getInstance(String songUrl){
+    public static SingleMediaPlayer getInstance(String songUrl, PlayerReadyCallback callback){
         if(mInstance == null)
         {
-            mInstance = new SingleMediaPlayer(songUrl);
+            mInstance = new SingleMediaPlayer(songUrl, callback);
         }
         return mInstance;
     }
@@ -67,3 +69,4 @@ public class SingleMediaPlayer extends MediaPlayer {
     }
 
 }
+

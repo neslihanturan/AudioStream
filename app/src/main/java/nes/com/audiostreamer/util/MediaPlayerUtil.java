@@ -10,11 +10,11 @@ import nes.com.audiostreamer.model.SingleMediaPlayer;
 
 
 public final class MediaPlayerUtil{
-    public static boolean isMediaPlayerReady = false;
+    //public static boolean isMediaPlayerReady = false;
 
     //can be called for resume playback and start to play
     public static void start(MediaPlayer mediaPlayer){
-        if (isMediaPlayerReady && !mediaPlayer.isPlaying()) {
+        if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
             mediaPlayer.setVolume(1.0f, 1.0f);
         }
@@ -32,7 +32,7 @@ public final class MediaPlayerUtil{
         }
         mediaPlayer.release();
         SingleMediaPlayer.nullifySingleMediaPlayer();
-        isMediaPlayerReady = false;
+        //isMediaPlayerReady = false;
     }
 
     public static void turnVolumeToLow(MediaPlayer mediaPlayer){

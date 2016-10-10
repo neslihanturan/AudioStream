@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 
+import nes.com.audiostreamer.model.PlayerReadyCallback;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
@@ -15,23 +16,27 @@ import nes.com.audiostreamer.util.MediaPlayerUtil;
  * Created by nesli on 06.10.2016.
  */
 
-public class MusicIntentReceiver extends BroadcastReceiver {
+public class MusicIntentReceiver extends BroadcastReceiver implements PlayerReadyCallback{
     MediaPlayer mediaPlayer = null;
     String songUrl;
+    private boolean isMediaPlayerReady;
 
     @Override
     public void onReceive(Context ctx, Intent intent) {
         String action = intent.getAction();
 
         songUrl = getExtra(intent);
-        mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
+        mediaPlayer = SingleMediaPlayer.getInstance(songUrl, this);
 
         if (action.equals(
                 android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
         }else{
             if(Constant.ACTION_PLAY.equals(action)) {
-                MediaPlayerUtil.start(mediaPlayer);
-                Log.v("i","Pressed Play");
+                if(isMediaPlayerReady){
+                    MediaPlayerUtil.start(mediaPlayer);
+                    isMediaPlayerReady = false;
+                    Log.v("i","Pressed Play");
+                }
             } else if(Constant.ACTION_STOP.equals(action)) {
                 MediaPlayerUtil.pause(mediaPlayer);
                 Log.v("i","Pressed Stop");
@@ -51,5 +56,9 @@ public class MusicIntentReceiver extends BroadcastReceiver {
         }
     }
 
+    @Override
+    public void mediaPlayerPrepared() {
+        isMediaPlayerReady = true;
+    }
 }
 

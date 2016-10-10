@@ -15,40 +15,41 @@ import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.model.Song;
 import nes.com.audiostreamer.model.SongAdapter;
+import nes.com.audiostreamer.model.PlayerReadyCallback;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PlayerReadyCallback{
     public static int position = 0;
 
     private List<Song> songList;
     private boolean isPlaying = false;
-    private boolean isNewSong = false;
+    private boolean isNewSong = true;
 
     private Button playButton;
     private Button prevButton;
     private Button nextButton;
+    private SongAdapter adapter;
+    private ListView songListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         setSongManual();        // TODO: get real data
         playButton = (Button)findViewById(R.id.playButton);
         prevButton = (Button)findViewById(R.id.prevButton);
         nextButton = (Button)findViewById(R.id.nextButton);
-
-        ListView songListView = (ListView) findViewById(R.id.listView);
-        final SongAdapter adapter = new SongAdapter(this, songList);
+        songListView = (ListView) findViewById(R.id.listView);
+        adapter = new SongAdapter(this, songList);
         songListView.setAdapter(adapter);
+
         songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 prepareToNewSong(adapter, position);
             }
         });
-
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,19 +89,34 @@ public class MainActivity extends AppCompatActivity {
     public void playOrPauseSong(){
         String songUrl = songList.get(position).getUrl();
         if(isNewSong) {         //stop to recreate
-            MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl)); //stop exsisting media player obj
+            MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl,this)); //stop exsisting media player obj
+            lockButtons();
+
             isPlaying = false;      //not playing yet
             isNewSong = false;      //not set until detect a new song
         }
         if(isPlaying) {     //pause
-            MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
+            MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl, this));
             playButton.setText(">");        //update button look
         }else{              //continue or recreate
             startService(new Intent(MainActivity.this, BackgroundService.class));
-            MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
+            MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl, this));
             playButton.setText("||");       //update button look
         }
         isPlaying=!isPlaying;
+    }
+
+    public void lockButtons(){
+        playButton.setClickable(false);
+        prevButton.setClickable(false);
+        nextButton.setClickable(false);
+        songListView.setClickable(false);
+    }
+    public void unlockButtons(){
+        playButton.setClickable(true);
+        prevButton.setClickable(true);
+        nextButton.setClickable(true);
+        songListView.setClickable(true);
     }
 
     public void setSongManual(){
@@ -146,4 +162,8 @@ public class MainActivity extends AppCompatActivity {
         // The activity is about to be destroyed.
     }
 
+    @Override
+    public void mediaPlayerPrepared() {
+        unlockButtons();
+    }
 }
