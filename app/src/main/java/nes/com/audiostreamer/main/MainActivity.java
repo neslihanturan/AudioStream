@@ -108,18 +108,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSongManual(){
         songList = new ArrayList<>();
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Lucky One","George Woods","https://i.cloudup.com/kitGU79aWK.mp3",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("title","artist","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song2","Artist2","https://i.cloudup.com/kitGU79aWK.mp3",10));
+        songList.add(new Song("Song3","Artist3","http://upload.wikimedia.org/wikipedia/en/b/b5/Radiohead_-_Pyramid_Song_%28sample%29.ogg",10));
+        songList.add(new Song("Song4","Artist4","http://upload.wikimedia.org/wikipedia/en/9/9f/Sample_of_%22Another_Day_in_Paradise%22.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
     }
 
     @Override
