@@ -1,4 +1,4 @@
-package nes.com.audiostreamer.main;
+package nes.com.audiostreamer.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,9 +7,9 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 
+import nes.com.audiostreamer.main.Constant;
 import nes.com.audiostreamer.model.PlayerReadyCallback;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
-import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 /**
@@ -60,5 +60,6 @@ public class MusicIntentReceiver extends BroadcastReceiver implements PlayerRead
     public void mediaPlayerPrepared() {
         isMediaPlayerReady = true;
     }
+
 }
 
