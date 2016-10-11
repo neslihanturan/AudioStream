@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements PlayerReadyCallba
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //android.os.Debug.waitForDebugger();
         setContentView(R.layout.activity_main);
         setSongManual();        // TODO: get real data
         playButton = (Button)findViewById(R.id.playButton);
@@ -89,34 +90,55 @@ public class MainActivity extends AppCompatActivity implements PlayerReadyCallba
     public void playOrPauseSong(){
         String songUrl = songList.get(position).getUrl();
         if(isNewSong) {         //stop to recreate
-            MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl,this)); //stop exsisting media player obj
-            lockButtons();
-
-            isPlaying = false;      //not playing yet
-            isNewSong = false;      //not set until detect a new song
+            stopExistingSong(songUrl);
+            createNewSong(songUrl);
+            return;             //
         }
         if(isPlaying) {     //pause
-            MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl, this));
-            playButton.setText(">");        //update button look
+            pauseExistingSong(songUrl);
         }else{              //continue or recreate
-            startService(new Intent(MainActivity.this, BackgroundService.class));
-            MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl, this));
-            playButton.setText("||");       //update button look
+            playExistingSong(songUrl);
         }
-        isPlaying=!isPlaying;
     }
 
     public void lockButtons(){
         playButton.setClickable(false);
-        prevButton.setClickable(false);
-        nextButton.setClickable(false);
         songListView.setClickable(false);
     }
     public void unlockButtons(){
         playButton.setClickable(true);
-        prevButton.setClickable(true);
-        nextButton.setClickable(true);
         songListView.setClickable(true);
+    }
+
+    public void playExistingSong(String songUrl){
+        startService(new Intent(MainActivity.this, BackgroundService.class));
+        MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl, this));
+        isPlaying = true;
+        updateButtonLook(isPlaying);
+    }
+    public void pauseExistingSong(String songUrl){
+        MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl, this));
+        isPlaying = false;
+        updateButtonLook(isPlaying);
+    }
+
+    public void stopExistingSong(String songUrl){
+        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl,this)); //stop exsisting media player obj
+        lockButtons();      //wait for PlayerReadyCallback
+        isPlaying = false;      //not playing yet
+        isNewSong = false;      //not set until detect a new song
+        updateButtonLook(isPlaying);
+    }
+
+    public void createNewSong(String songUrl){
+        SingleMediaPlayer.getInstance(songUrl,this);
+        startService(new Intent(MainActivity.this, BackgroundService.class));
+    }
+
+    public void updateButtonLook(boolean isPlaying){
+        String state = ((isPlaying) ? "||" : ">");
+        playButton.setText(state);
+
     }
 
     public void setSongManual(){
@@ -165,5 +187,7 @@ public class MainActivity extends AppCompatActivity implements PlayerReadyCallba
     @Override
     public void mediaPlayerPrepared() {
         unlockButtons();
+        isPlaying = true;
+        updateButtonLook(isPlaying);
     }
 }
