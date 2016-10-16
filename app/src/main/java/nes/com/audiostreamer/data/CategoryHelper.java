@@ -3,6 +3,8 @@ package nes.com.audiostreamer.data;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -16,6 +18,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import nes.com.audiostreamer.model.gson.CategoryGsonParser;
 
 
 /**
@@ -39,6 +43,14 @@ public class CategoryHelper extends AsyncTask{
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
         Log.d("i",((String) o));
+        String result = (String) o;
+        Gson gson = new Gson();
+        CategoryGsonParser gsonObj = gson.fromJson(result, CategoryGsonParser.class);
+        Log.d("i","gson "+ gsonObj.getBatchcomplete());
+        Log.d("i","gson "+gsonObj.getQuery().getPrefixsearch()[0]);
+        for(int i = 0; i < gsonObj.getQuery().getPrefixsearch().length-1; i++){
+            Log.d("i","gson "+gsonObj.getQuery().getPrefixsearch()[i]);
+        }
     }
 
     private String downloadUrl(String urlString) throws IOException {
