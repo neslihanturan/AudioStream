@@ -1,8 +1,12 @@
 package nes.com.audiostreamer.main;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -12,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nes.com.audiostreamer.R;
+import nes.com.audiostreamer.data.CategoryHelper;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.model.Song;
 import nes.com.audiostreamer.model.SongAdapter;
@@ -20,6 +25,7 @@ import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class MainActivity extends AppCompatActivity {
     public static int position = 0;
+    private final String sourceUrl = "https://commons.wikimedia.org/w/api.php?";
 
     private List<Song> songList;
     private boolean isPlaying = false;
@@ -34,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getDataFromNetwork(sourceUrl);
 
         setSongManual();        // TODO: get real data
         playButton = (Button)findViewById(R.id.playButton);
@@ -112,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         songList.add(new Song("Song2","Artist2","https://i.cloudup.com/kitGU79aWK.mp3",10));
         songList.add(new Song("Song3","Artist3","http://upload.wikimedia.org/wikipedia/en/b/b5/Radiohead_-_Pyramid_Song_%28sample%29.ogg",10));
         songList.add(new Song("Song4","Artist4","http://upload.wikimedia.org/wikipedia/en/9/9f/Sample_of_%22Another_Day_in_Paradise%22.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/commons/4/48/Catherine_de_Jong_-_voice_-_nl.flac",10));
         songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
         songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
         songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
@@ -120,6 +128,23 @@ public class MainActivity extends AppCompatActivity {
         songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
         songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
     }
+
+    public void getDataFromNetwork(String query){
+        new CategoryHelper().execute(query);
+    }
+    /*
+    *Does not work on emulator
+    *
+    public boolean isNetworkConnected(){
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            return true;
+        } else {
+            return false;
+        }
+    }*/
 
     @Override
     protected void onStart() {
