@@ -80,7 +80,7 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 // resume playback
-                MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
+                MediaPlayerUtil.play(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:

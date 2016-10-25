@@ -2,149 +2,222 @@ package nes.com.audiostreamer.main;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import nes.com.audiostreamer.MediaPlayerCallback;
 import nes.com.audiostreamer.R;
-import nes.com.audiostreamer.data.CategoryHelper;
 import nes.com.audiostreamer.model.SingleMediaPlayer;
-import nes.com.audiostreamer.model.Song;
-import nes.com.audiostreamer.model.SongAdapter;
+import nes.com.audiostreamer.model.gson.MwJsonObject;
+import nes.com.audiostreamer.model.gson.MwJsonPage;
+import nes.com.audiostreamer.server.MwAPIInterface;
+import nes.com.audiostreamer.server.RetrofitServiceCache;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerUtil;
+import nes.com.audiostreamer.view.ProgressView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
-    public static int position = 0;
-    private final String sourceUrl = "https://commons.wikimedia.org/w/api.php?";
-
-    private List<Song> songList;
+public class MainActivity extends AppCompatActivity implements MediaPlayerCallback{
+    private List<String> cateroryList;
     private boolean isPlaying = false;
-    private boolean isNewSong = false;
-
-    private Button playButton;
-    private Button prevButton;
-    private Button nextButton;
+    private boolean isFirstSong = true;
+    private FloatingActionButton playButton;
+    private FloatingActionButton nextButton;
+    //private ProgressView progressView;
+    public static SeekBar seekBar;
     private Intent serviceIntent;
+    private String songUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d9/Angelien_Eijsink_-_voice_-_nl_-_long.flac";   //placeholder url
+    private Context context;
+    private MwAPIInterface mwAPIService;
+    @NonNull
+    private Call<MwJsonObject> queryResponse ;
+    private Toast toast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        getDataFromNetwork(sourceUrl);
-
-        setSongManual();        // TODO: get real data
-        playButton = (Button)findViewById(R.id.playButton);
-        prevButton = (Button)findViewById(R.id.prevButton);
-        nextButton = (Button)findViewById(R.id.nextButton);
+        setContentView(R.layout.deneme);
+        context = this;
+        playButton = (FloatingActionButton) findViewById(R.id.playButton);
+        nextButton = (FloatingActionButton)findViewById(R.id.nextButton);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
         serviceIntent = new Intent(MainActivity.this, BackgroundService.class);
-
-        ListView songListView = (ListView) findViewById(R.id.listView);
-        final SongAdapter adapter = new SongAdapter(this, songList);
-        songListView.setAdapter(adapter);
-        songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                prepareToNewSong(adapter, position);
-            }
-        });
+        cateroryList = getIntent().getStringArrayListExtra("category_list");
+        //getNextSong();
+        MediaPlayerUtil.delegate = this;
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playOrPauseSong();
-            }
-        });
-        prevButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position = ((MainActivity.position-1 < 0) ? songList.size()-1 : MainActivity.position-1);  //update new position to next, if EOL turn to end
-                prepareToNewSong(adapter, position);
+                replaceToast("clicked");
+                    playOrPauseSong();
             }
         });
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int position = (MainActivity.position+1)%songList.size();       //update new position to next, if EOL turn to beginning
-                prepareToNewSong(adapter, position);
+                getNextSong();
+            }
+        });
+
+//Make sure you update Seekbar on UI thread
+
+        /*seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                SingleMediaPlayer.getInstance(songUrl).seekTo(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });*/
+
+    }
+
+    /*public void prepareSeekBar(){
+        seekBar.setMax(SingleMediaPlayer.getInstance(songUrl).getDuration());
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(SingleMediaPlayer.getInstance(songUrl) != null){
+                    int mCurrentPosition = SingleMediaPlayer.getInstance(songUrl).getCurrentPosition() / 1000;
+                    seekBar.setProgress(mCurrentPosition);
+                }
+                mHandler.postDelayed(this, 1000);
             }
         });
     }
+    */
 
-    public void prepareToNewSong(SongAdapter adapter, int position){
-        adapter.setSelectedIndex(position);
-        adapter.notifyDataSetChanged();
-        songChangeCheck(position);
-        playButton.performClick();
-    }
-
-    public void songChangeCheck(int position){      //checks if the song changed
-        if( MainActivity.position != position) {
-            MainActivity.position = position;
-            isNewSong = true;           //we need to recreate mediaplayer singletone with new song
-        }
-    }
 
     public void playOrPauseSong(){
-        String songUrl = songList.get(position).getUrl();
-        if(isNewSong) {         //stop to recreate
-            MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl)); //stop exsisting media player obj
-            isPlaying = false;      //not playing yet
-            isNewSong = false;      //not set until detect a new song
-        }
         if(isPlaying) {     //pause
             MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
-            playButton.setText(">");        //update button look
         }else{              //continue or recreate
+            lockPlayer();
             serviceIntent.putExtra("songUrl", songUrl);     //pass url to service
-            this.startService(serviceIntent);        //start service
-            MediaPlayerUtil.start(SingleMediaPlayer.getInstance(songUrl));
-            playButton.setText("||");       //update button look
+            this.startService(serviceIntent);        //play service
+            MediaPlayerUtil.play(SingleMediaPlayer.getInstance(songUrl));
         }
-        isPlaying=!isPlaying;
+
+    }
+    public void getNextSong(){
+        lockPlayer();
+        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
+        songUrl = getRandomAudio(getRandomCategory());
+        //playOrPauseSong();
     }
 
-    public void setSongManual(){
-        songList = new ArrayList<>();
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song2","Artist2","https://i.cloudup.com/kitGU79aWK.mp3",10));
-        songList.add(new Song("Song3","Artist3","http://upload.wikimedia.org/wikipedia/en/b/b5/Radiohead_-_Pyramid_Song_%28sample%29.ogg",10));
-        songList.add(new Song("Song4","Artist4","http://upload.wikimedia.org/wikipedia/en/9/9f/Sample_of_%22Another_Day_in_Paradise%22.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/commons/4/48/Catherine_de_Jong_-_voice_-_nl.flac",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
-        songList.add(new Song("Song1","Artist1","https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg",10));
+
+    public void lockPlayer(){
+        playButton.setClickable(false);
+        nextButton.setClickable(false);
+    }
+    public void unlockPlayer(){
+        playButton.setClickable(true);
+        nextButton.setClickable(true);
     }
 
-    public void getDataFromNetwork(String query){
-        new CategoryHelper().execute(query);
+    public String getRandomCategory(){
+        Random randomGenerator = new Random();
+        int index = randomGenerator.nextInt(cateroryList.size());
+        return cateroryList.get(index);
     }
-    /*
-    *Does not work on emulator
-    *
-    public boolean isNetworkConnected(){
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-            return true;
-        } else {
-            return false;
+
+    public String getRandomAudio(final String categoryTitle){
+        mwAPIService = RetrofitServiceCache.getService();
+        queryResponse = mwAPIService.getRandomAudio(categoryTitle);
+        queryResponse.enqueue(new Callback<MwJsonObject>() {
+            @Override
+            public void onResponse(Call<MwJsonObject> call, Response<MwJsonObject> response) {
+                Log.d("categoryTitle",categoryTitle);
+                Log.d("body",response.body().toString());
+                if(response.body().getQuery()==null){       //remove category from list
+                    cateroryList.remove(categoryTitle);
+                    songUrl = getRandomAudio(getRandomCategory());
+                }else{
+                    //Log.d("error",response.errorBody().toString());
+                    Random generator = new Random();
+                    Object[] values = response.body().getQuery().getPages().values().toArray();
+                    Object randomValue = values[generator.nextInt(values.length)];
+                    replaceToast(((MwJsonPage)randomValue).getImageinfo()[0].toString());
+                    Log.d("i",((MwJsonPage)randomValue).getImageinfo()[0].toString());
+                    MainActivity.this.songUrl = ((MwJsonPage)randomValue).getImageinfo()[0].getUrl();
+                    playOrPauseSong();
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<MwJsonObject> call, Throwable t) {
+                replaceToast(Constant.NETWORK_FAILURE_MESSAGE);
+                MainActivity.this.songUrl = "";
+            }
+        });
+        return songUrl;
+    }
+
+    private void replaceToast(String message) {
+        if (toast != null) {
+            toast.cancel();
         }
-    }*/
+        toast = Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+    @Override
+    public void mediaPlayerPlaying() {
+        //prepareSeekBar();
+        isPlaying = true;
+        unlockPlayer();
+        setPlayingView();
+    }
+
+    @Override
+    public void mediaPlayerStopped() {
+        isPlaying = false;
+        getNextSong();
+        //setPausedView();
+    }
+
+    @Override
+    public void mediaPlayerEndOfSong() {
+        isPlaying = false;
+        getNextSong();
+        //setPausedView();
+    }
+
+    @Override
+    public void mediaPlayerPaused() {
+        isPlaying = false;
+        setPausedView();
+    }
+    public void setPlayingView(){
+       // playButton.setText("||");
+    }
+    public void setPausedView(){
+       // playButton.setText(">");
+    }
 
     @Override
     protected void onStart() {
@@ -172,5 +245,44 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         // The activity is about to be destroyed.
     }
+
+        /*
+    *Does not work on emulator
+    *
+    public boolean isNetworkConnected(){
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            return true;
+        } else {
+            return false;
+        }
+    }*/
+
+    /*
+    @Override
+    public void mediaPlayerPrepared() {
+        playButton.setText("||");
+    }
+    */
+
+    /*
+    @Override
+    public void audioProcessFinish(ImageInfo output) {
+        unlockPlayer();
+        songUrl = output.getUrl();
+        Log.d("i","title: " +output.getCanonicaltitle()
+                +"\nmediatype: "+output.getMediatype()
+                +"\nmimetype: "+output.getMime()
+                +"\nuser: "+output.getUser()
+                +"\nurl: "+output.getUrl());
+        Toast.makeText(getBaseContext(), "title: " +output.getCanonicaltitle()
+                +"\nmediatype: "+output.getMediatype()
+                +"\nmimetype: "+output.getMime()
+                +"\nuser: "+output.getUser()
+                +"\nurl: "+output.getUrl(),
+                Toast.LENGTH_LONG).show();
+    }*/
 
 }

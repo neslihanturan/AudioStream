@@ -13,12 +13,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:launchMode="singleTask" >
-        <activity android:name=".main.MainActivity">
+        <activity android:name=".main.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".main.MainActivity">
+
         </activity>
         <service android:enabled="true" android:name=".service.BackgroundService" />
         <receiver android:name=".main.MusicIntentReceiver">
