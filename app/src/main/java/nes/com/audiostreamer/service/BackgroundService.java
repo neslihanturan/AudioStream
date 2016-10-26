@@ -12,8 +12,6 @@ import android.support.v4.app.NotificationCompat;
 
 import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.main.Constant;
-import nes.com.audiostreamer.model.SingleMediaPlayer;
-import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener{
     private MediaPlayer mediaPlayer = null;
@@ -62,10 +60,10 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
         startForeground(Constant.NOTIFICATION_ID, notification);
     }
 
-    @Override
+   /* @Override
     public void onDestroy() {
-        MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
-    }
+        MediaPlayerController.stop(songUrl);
+    }*/
 
 
     @Nullable
@@ -80,25 +78,25 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 // resume playback
-                MediaPlayerUtil.play(SingleMediaPlayer.getInstance(songUrl));
+                //MediaPlayerController.play(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 // Lost focus for an unbounded amount of time: stop playback and release media player
-                MediaPlayerUtil.stop(SingleMediaPlayer.getInstance(songUrl));
+               // MediaPlayerController.stop(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 // Lost focus for a short time, but we have to stop
                 // playback. We don't release the media player because playback
                 // is likely to resume
-                MediaPlayerUtil.pause(SingleMediaPlayer.getInstance(songUrl));
+               // MediaPlayerController.pause(SingleMediaPlayer.getInstance(songUrl));
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 // Lost focus for a short time, but it's ok to keep playing
                 // at an attenuated level
-                MediaPlayerUtil.turnVolumeToLow(mediaPlayer);
+               // MediaPlayerController.turnVolumeToLow(mediaPlayer);
                 break;
         }
 
