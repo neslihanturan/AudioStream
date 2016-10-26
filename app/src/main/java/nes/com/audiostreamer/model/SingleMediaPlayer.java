@@ -2,12 +2,10 @@ package nes.com.audiostreamer.model;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.util.Log;
 
 import java.io.IOException;
 
-import nes.com.audiostreamer.main.MainActivity;
-import nes.com.audiostreamer.util.MediaPlayerUtil;
+import nes.com.audiostreamer.util.MediaPlayerController;
 
 
 /**
@@ -16,70 +14,90 @@ import nes.com.audiostreamer.util.MediaPlayerUtil;
 
 public class SingleMediaPlayer extends MediaPlayer {
     private static SingleMediaPlayer mInstance = null;
-    private Runnable onEverySecond=new Runnable() {
+    public int state;
+    //public static MediaPlayerObserver mediaPlayerObserver = null;
 
-        @Override
-        public void run() {
-            if(mInstance!=null){
-                if(MainActivity.seekBar != null) {
-                    MainActivity.seekBar.setProgress(mInstance.getCurrentPosition());
-                }
-                if(mInstance.isPlaying()) {
-                    MainActivity.seekBar.postDelayed(onEverySecond, 1000);
-                }
-            }
 
-        }
-    };
-
-    private SingleMediaPlayer(String songUrl){
-        this.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    public static SingleMediaPlayer getInstance(){
         try {
-            this.setDataSource(songUrl);
-            this.prepareAsync(); //to make it on separate thread
-            this.setOnPreparedListener(new OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    Log.d("i","music is playing");
-                    if(!mediaPlayer.isPlaying()) {
-                        //mediaPlayer.start();
-                        MainActivity.seekBar.setMax(mediaPlayer.getDuration());
-                        MainActivity.seekBar.postDelayed(onEverySecond, 1000);
-                        MediaPlayerUtil.isMediaPlayerReady = true;
-                        MediaPlayerUtil.play(mInstance);
-                    }
-                    //delegate.mediaPlayerIsReady();
-                }
-            });
-            this.setOnCompletionListener(new OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    MediaPlayerUtil.endOfSong(mInstance);
-                }
-            });
-            this.setOnErrorListener(new OnErrorListener() {
-                @Override
-                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                    return false;
-                }
-            });
+            if(mInstance == null)
+            {
+                mInstance = new SingleMediaPlayer();
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static SingleMediaPlayer getInstance(String songUrl){
-        if(mInstance == null)
-        {
-            mInstance = new SingleMediaPlayer(songUrl);
-        }
+                e.printStackTrace();
+            }
         return mInstance;
     }
-    public static void nullifySingleMediaPlayer() {
+    private SingleMediaPlayer() throws IOException {
+        this.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        this.state = MediaPlayerState.STATE_IDLE;
+    }
+    public static void setDataMediaPlayer(String songUrl) throws IOException {
+        mInstance.setDataSource(songUrl);
+        mInstance.state = MediaPlayerState.STATE_INITIALIZED;
+        //mInstance.mediaPlayerObserver = new MediaPlayerObserver();
+    }
+    public static void prepareMediaPlayer(final String songUrl) throws IOException {
+        mInstance.prepareAsync();
+        mInstance.state = MediaPlayerState.STATE_PREPARING;
+        mInstance.setOnPreparedListener(new OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                try {
+                    mInstance.state = MediaPlayerState.STATE_PREPARED;
+                    MediaPlayerController.handlePendingAction(songUrl);
+                   // new Thread(mInstance.mediaPlayerObserver).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        mInstance.setOnErrorListener(new OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                mInstance.state = MediaPlayerState.STATE_ERROR;
+                //mInstance.mediaPlayerObserver.stop();
+                return false;
+            }
+        });
+        mInstance.setOnCompletionListener(new OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                MediaPlayerController.delegate.mediaPlayerEndOfSong();
+                mInstance.state = MediaPlayerState.STATE_PLAYBACK_COMPLETED;
+               // mInstance.mediaPlayerObserver.stop();
+            }
+        });
+    }
+    public void playMediaPlayer(){
+        mInstance.start();
+        mInstance.state = MediaPlayerState.STATE_STARTED;
+    }
+    public void pauseMediaPlayer(){
+        mInstance.pause();
+        mInstance.state = MediaPlayerState.STATE_PAUSED;
+    }
+    public void stopMediaPlayer(){
+        mInstance.stop();
+        mInstance.state = MediaPlayerState.STATE_STOPPED;
+    }
+    public void releaseMediaPlayer(){
+        mInstance.release();
+        mInstance.state = MediaPlayerState.STATE_RELEASED;
+    }
+    public void resetMediaPlayer(){
+        mInstance.reset();
+        mInstance.state = MediaPlayerState.STATE_IDLE;
+    }
+
+
+    /*public static void nullifySingleMediaPlayer() {
         mInstance = null;
     }
+    */
+
+/*
     public static void playNewSong(String songUrl) throws IOException {
         mInstance.reset();
         mInstance.setDataSource(songUrl);
@@ -90,8 +108,8 @@ public class SingleMediaPlayer extends MediaPlayer {
                 Log.d("i","music is playing");
                 if(!mediaPlayer.isPlaying()) {
                     //mediaPlayer.start();
-                    MediaPlayerUtil.isMediaPlayerReady = true;
-                    MediaPlayerUtil.play(mInstance);
+                    MediaPlayerController.isMediaPlayerReady = true;
+                    MediaPlayerController.play(mInstance);
                 }
                 //delegate.mediaPlayerIsReady();
             }
@@ -99,12 +117,13 @@ public class SingleMediaPlayer extends MediaPlayer {
         mInstance.setOnCompletionListener(new OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                MediaPlayerUtil.endOfSong(mInstance);
+                MediaPlayerController.endOfSong(mInstance);
             }
         });
 
 
     }
+    */
 
     public String getSong(String song){
         //TODO
