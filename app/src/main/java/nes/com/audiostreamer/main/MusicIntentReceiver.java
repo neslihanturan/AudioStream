@@ -7,9 +7,11 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.IOException;
+
 import nes.com.audiostreamer.model.SingleMediaPlayer;
 import nes.com.audiostreamer.service.BackgroundService;
-import nes.com.audiostreamer.util.MediaPlayerUtil;
+import nes.com.audiostreamer.util.MediaPlayerController;
 
 /**
  * Created by nesli on 06.10.2016.
@@ -24,16 +26,24 @@ public class MusicIntentReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         songUrl = getExtra(intent);
-        mediaPlayer = SingleMediaPlayer.getInstance(songUrl);
+        mediaPlayer = SingleMediaPlayer.getInstance();
 
         if (action.equals(
                 android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
         }else{
             if(Constant.ACTION_PLAY.equals(action)) {
-                MediaPlayerUtil.play(mediaPlayer);
+                try {
+                    MediaPlayerController.play(songUrl);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Log.v("i","Pressed Play");
             } else if(Constant.ACTION_STOP.equals(action)) {
-                MediaPlayerUtil.pause(mediaPlayer);
+                try {
+                    MediaPlayerController.pause();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Log.v("i","Pressed Stop");
             } else if(Constant.ACTION_CLOSE.equals(action)) {
                 ctx.stopService(new Intent(ctx, BackgroundService.class));
