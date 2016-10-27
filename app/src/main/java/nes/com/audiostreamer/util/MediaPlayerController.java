@@ -3,8 +3,8 @@ package nes.com.audiostreamer.util;
 import java.io.IOException;
 
 import nes.com.audiostreamer.MediaPlayerCallback;
-import nes.com.audiostreamer.model.MediaPlayerState;
-import nes.com.audiostreamer.model.SingleMediaPlayer;
+import nes.com.audiostreamer.model.mediaplayer.MediaPlayerState;
+import nes.com.audiostreamer.model.mediaplayer.SingleMediaPlayer;
 
 /**
  * Created by nesli on 07.10.2016.

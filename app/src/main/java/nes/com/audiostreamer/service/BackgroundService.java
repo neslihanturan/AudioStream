@@ -14,7 +14,6 @@ import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.main.Constant;
 
 public class BackgroundService extends Service implements AudioManager.OnAudioFocusChangeListener{
-    private MediaPlayer mediaPlayer = null;
     private Notification notification;
     private String songUrl;
 
@@ -56,6 +55,7 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel,
                         "Close", closePendingIntent)
                 .build();
+        
 
         startForeground(Constant.NOTIFICATION_ID, notification);
     }

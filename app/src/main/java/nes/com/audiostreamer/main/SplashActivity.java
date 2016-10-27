@@ -9,9 +9,11 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import nes.com.audiostreamer.R;
+import nes.com.audiostreamer.model.WikipediaPageSummary;
 import nes.com.audiostreamer.model.gson.MwJsonObject;
-import nes.com.audiostreamer.server.MwAPIInterface;
-import nes.com.audiostreamer.server.RandomCategoryCallback;
+import nes.com.audiostreamer.server.service.MwAPIInterface;
+import nes.com.audiostreamer.server.callback.RandomCategoryCallback;
+import nes.com.audiostreamer.server.callback.RandomSummaryCallback;
 import nes.com.audiostreamer.util.data.WmCommonsDataUtil;
 import retrofit2.Call;
 
@@ -20,7 +22,7 @@ import retrofit2.Call;
  * Created by nesli on 17.10.2016.
  */
 
-public class SplashActivity extends Activity implements RandomCategoryCallback{
+public class SplashActivity extends Activity implements RandomCategoryCallback, RandomSummaryCallback{
     private ArrayList<String> categoryList;
     private Toast toast;
     private int pendingRequests;
@@ -34,6 +36,8 @@ public class SplashActivity extends Activity implements RandomCategoryCallback{
         setContentView(R.layout.activity_splash);
         categoryList = new ArrayList<>();
         WmCommonsDataUtil.getRandomCategory(this);
+        WmCommonsDataUtil.getRandomSummary(this);
+
     }
 
     public void startApplication(){
@@ -51,14 +55,24 @@ public class SplashActivity extends Activity implements RandomCategoryCallback{
     }
 
     @Override
-    public void onSuccess(ArrayList<String> categoryList) {
+    public void onSuccessCommonsCategoryData(ArrayList<String> categoryList) {
         this.categoryList = categoryList;
         startApplication();
     }
 
     @Override
-    public void onError() {
+    public void onErrorCommonsCategoryData() {
         replaceToast(Constant.NETWORK_FAILURE_MESSAGE);
+    }
+
+    @Override
+    public void onSuccessWikipediaData(WikipediaPageSummary pageSummary) {
+            //TODO
+    }
+
+    @Override
+    public void onErrorWikipediaData() {
+
     }
 
         /*private void recordQueryResponse() {

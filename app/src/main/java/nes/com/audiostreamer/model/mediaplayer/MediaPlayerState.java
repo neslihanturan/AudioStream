@@ -1,4 +1,4 @@
-package nes.com.audiostreamer.model;
+package nes.com.audiostreamer.model.mediaplayer;
 
 /**
  * Created by nesli on 25.10.2016.

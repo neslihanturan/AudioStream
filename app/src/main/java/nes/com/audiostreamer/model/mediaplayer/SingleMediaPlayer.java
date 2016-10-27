@@ -1,4 +1,4 @@
-package nes.com.audiostreamer.model;
+package nes.com.audiostreamer.model.mediaplayer;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;

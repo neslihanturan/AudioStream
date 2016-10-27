@@ -6,11 +6,15 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import nes.com.audiostreamer.model.AudioFile;
+import nes.com.audiostreamer.model.WikipediaPageSummary;
 import nes.com.audiostreamer.model.gson.MwJsonObject;
 import nes.com.audiostreamer.model.gson.MwJsonPage;
-import nes.com.audiostreamer.server.RandomAudioCallback;
-import nes.com.audiostreamer.server.RandomCategoryCallback;
-import nes.com.audiostreamer.server.RetrofitServiceCache;
+import nes.com.audiostreamer.model.gson.RestfulJsonObject;
+import nes.com.audiostreamer.server.callback.RandomAudioCallback;
+import nes.com.audiostreamer.server.callback.RandomCategoryCallback;
+import nes.com.audiostreamer.server.instance.CommonsRetrofitServiceCache;
+import nes.com.audiostreamer.server.callback.RandomSummaryCallback;
+import nes.com.audiostreamer.server.instance.WikipediaRetrofitServiceCache;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -20,15 +24,16 @@ import retrofit2.Response;
  */
 
 public class WmCommonsDataUtil {
-    private static Call<MwJsonObject> queryResponse ;
+    private static Call<MwJsonObject> commonsQueryResponse;
+    private static Call<RestfulJsonObject> wikipediaQueryResponse;
 
     public static void getRandomAudio(final String categoryTitle, final RandomAudioCallback callback){
-        queryResponse = RetrofitServiceCache.getService().getRandomAudio(categoryTitle);
-        queryResponse.enqueue(new Callback<MwJsonObject>() {
+        commonsQueryResponse = CommonsRetrofitServiceCache.getService().getRandomAudio(categoryTitle);
+        commonsQueryResponse.enqueue(new Callback<MwJsonObject>() {
             @Override
             public void onResponse(Call<MwJsonObject> call, Response<MwJsonObject> response) {
                 if(response.body().getQuery()==null){
-                    callback.onSuccess(null, false);        //false means category is empty
+                    callback.onSuccessCommonsAudioData(null, false);        //false means category is empty
                 }
                 else{
                     AudioFile audioFile = new AudioFile();
@@ -39,20 +44,19 @@ public class WmCommonsDataUtil {
                     audioFile.setUrl(((MwJsonPage)randomValue).getImageinfo()[0].getUrl());
                     audioFile.setTitle(((MwJsonPage)randomValue).getImageinfo()[0].getCanonicaltitle());
                     audioFile.setCategory(categoryTitle);
-                    callback.onSuccess(audioFile, true);    //true means valid category
+                    callback.onSuccessCommonsAudioData(audioFile, true);    //true means valid category
                 }
-
             }
             @Override
             public void onFailure(Call<MwJsonObject> call, Throwable t) {
-                callback.onError();
+                callback.onErrorCommonsAudioData();
             }
         });
     }
 
     public static void getRandomCategory(final RandomCategoryCallback callback){
-        queryResponse = RetrofitServiceCache.getService().getRelevantCategories("");
-        queryResponse.enqueue(new Callback<MwJsonObject>() {
+        commonsQueryResponse = CommonsRetrofitServiceCache.getService().getRelevantCategories("");        //TODO: apply continuation
+        commonsQueryResponse.enqueue(new Callback<MwJsonObject>() {
             @Override
             public void onResponse(Call<MwJsonObject> call, Response<MwJsonObject> response) {
                 ArrayList<String> categoryList = new ArrayList<>();
@@ -60,11 +64,35 @@ public class WmCommonsDataUtil {
                     Log.d("i","gson "+response.body().getQuery().getPages().get(key).getTitle());
                     categoryList.add(response.body().getQuery().getPages().get(key).getTitle());
                 }
-                callback.onSuccess(categoryList);
+                callback.onSuccessCommonsCategoryData(categoryList);
             }
             @Override
             public void onFailure(Call<MwJsonObject> call, Throwable t) {
-                callback.onError();
+                callback.onErrorCommonsCategoryData();
+            }
+        });
+    }
+
+    //TODO: create resfuldatacommons class and put this in it
+    public static void getRandomSummary(final RandomSummaryCallback callback){
+        wikipediaQueryResponse = WikipediaRetrofitServiceCache.getService().getRandomSummary();
+        wikipediaQueryResponse.enqueue(new Callback<RestfulJsonObject>() {
+            @Override
+            public void onResponse(Call<RestfulJsonObject> call, Response<RestfulJsonObject> response) {
+                WikipediaPageSummary pageSummary = new WikipediaPageSummary(
+                        response.body().getThumbnail().getWidth(),
+                        response.body().getThumbnail().getWidth(),
+                        response.body().getThumbnail().getSource(),
+                        response.body().getExtract(),
+                        response.body().getTitle());
+                Log.d("wikipedia response",response.body().getTitle() + " url"+response.body().getExtract());
+                callback.onSuccessWikipediaData(pageSummary);
+            }
+
+            @Override
+            public void onFailure(Call<RestfulJsonObject> call, Throwable t) {
+                Log.d("wikipedia response","couldnt get data");
+                callback.onErrorWikipediaData();
             }
         });
     }

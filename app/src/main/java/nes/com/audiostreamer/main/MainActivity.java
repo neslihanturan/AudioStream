@@ -19,8 +19,8 @@ import java.util.Random;
 import nes.com.audiostreamer.MediaPlayerCallback;
 import nes.com.audiostreamer.R;
 import nes.com.audiostreamer.model.AudioFile;
-import nes.com.audiostreamer.model.MediaPlayerObserver;
-import nes.com.audiostreamer.server.RandomAudioCallback;
+import nes.com.audiostreamer.model.mediaplayer.MediaPlayerObserver;
+import nes.com.audiostreamer.server.callback.RandomAudioCallback;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerController;
 import nes.com.audiostreamer.util.data.WmCommonsDataUtil;
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
     public void playNextSong(){
         lockPlayer();
         WmCommonsDataUtil.getRandomAudio(getRandomCategory(),this);
-        //rest part of operation is onSuccess of getRandomAudio method
+        //rest part of operation is onSuccessCommonsCategoryData of getRandomAudio method
     }
     public void lockPlayer(){
         playButton.setClickable(false);
@@ -180,8 +180,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
     }
 
     @Override
-    public void onSuccess(AudioFile audioFile, boolean isCategoryNonEmpty) {
-        try {
+    public void onSuccessCommonsAudioData(AudioFile audioFile, boolean isCategoryNonEmpty) {
+        try {                               //TODO: clean empty categories
             if(isCategoryNonEmpty){
                 this.audioFile = audioFile;
             }else {
@@ -192,11 +192,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
-    public void onError() {
+    public void onErrorCommonsAudioData() {
         replaceToast(Constant.NETWORK_FAILURE_MESSAGE);
     }
 

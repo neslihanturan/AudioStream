@@ -9,7 +9,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
-import nes.com.audiostreamer.model.SingleMediaPlayer;
+import nes.com.audiostreamer.model.mediaplayer.SingleMediaPlayer;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerController;
 
