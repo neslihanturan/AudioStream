@@ -3,6 +3,8 @@ package nes.com.audiostreamer.model.mediaplayer;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 
+import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 
 import nes.com.audiostreamer.util.MediaPlayerController;
@@ -38,6 +40,11 @@ public class SingleMediaPlayer extends MediaPlayer {
         mInstance.state = MediaPlayerState.STATE_INITIALIZED;
         //mInstance.mediaPlayerObserver = new MediaPlayerObserver();
     }
+    public static void setDataMediaPlayer(FileDescriptor fileDescriptor) throws IOException {
+        mInstance.setDataSource(fileDescriptor);
+        mInstance.state = MediaPlayerState.STATE_INITIALIZED;
+        //mInstance.mediaPlayerObserver = new MediaPlayerObserver();
+    }
     public static void prepareMediaPlayer(final String songUrl) throws IOException {
         mInstance.prepareAsync();
         mInstance.state = MediaPlayerState.STATE_PREPARING;
@@ -67,6 +74,38 @@ public class SingleMediaPlayer extends MediaPlayer {
                 MediaPlayerController.delegate.mediaPlayerEndOfSong();
                 mInstance.state = MediaPlayerState.STATE_PLAYBACK_COMPLETED;
                // mInstance.mediaPlayerObserver.stop();
+            }
+        });
+    }
+    public static void prepareMediaPlayer(final FileDescriptor fileDescriptor) throws IOException {
+        mInstance.prepareAsync();
+        mInstance.state = MediaPlayerState.STATE_PREPARING;
+        mInstance.setOnPreparedListener(new OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                try {
+                    mInstance.state = MediaPlayerState.STATE_PREPARED;
+                    MediaPlayerController.handlePendingAction(fileDescriptor);
+                    // new Thread(mInstance.mediaPlayerObserver).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        mInstance.setOnErrorListener(new OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                mInstance.state = MediaPlayerState.STATE_ERROR;
+                //mInstance.mediaPlayerObserver.stop();
+                return false;
+            }
+        });
+        mInstance.setOnCompletionListener(new OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                MediaPlayerController.delegate.mediaPlayerEndOfSong();
+                mInstance.state = MediaPlayerState.STATE_PLAYBACK_COMPLETED;
+                // mInstance.mediaPlayerObserver.stop();
             }
         });
     }

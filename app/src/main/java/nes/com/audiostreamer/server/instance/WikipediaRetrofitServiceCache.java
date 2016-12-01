@@ -11,7 +11,8 @@ public class WikipediaRetrofitServiceCache {
 
     public static ResfulAPIInterface getService() {
         if (INSTANCE ==null) {
-            INSTANCE = CommonsRetrofitInstanceCache.getClient().create(ResfulAPIInterface.class);
+            //INSTANCE = CommonsRetrofitInstanceCache.getClient().create(ResfulAPIInterface.class);
+            INSTANCE = WikipediaRetrofitInstanceCache.getClient().create(ResfulAPIInterface.class);
         }
         return INSTANCE;
     }

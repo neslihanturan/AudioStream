@@ -2,6 +2,12 @@ package nes.com.audiostreamer.util.data;
 
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -10,14 +16,19 @@ import nes.com.audiostreamer.model.WikipediaPageSummary;
 import nes.com.audiostreamer.model.gson.MwJsonObject;
 import nes.com.audiostreamer.model.gson.MwJsonPage;
 import nes.com.audiostreamer.model.gson.RestfulJsonObject;
+import nes.com.audiostreamer.server.callback.AudioStreamCompletedCallback;
 import nes.com.audiostreamer.server.callback.RandomAudioCallback;
 import nes.com.audiostreamer.server.callback.RandomCategoryCallback;
 import nes.com.audiostreamer.server.instance.CommonsRetrofitServiceCache;
 import nes.com.audiostreamer.server.callback.RandomSummaryCallback;
+import nes.com.audiostreamer.server.instance.RandomAudioServiceCache;
 import nes.com.audiostreamer.server.instance.WikipediaRetrofitServiceCache;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by nesli on 26.10.2016.
@@ -26,6 +37,7 @@ import retrofit2.Response;
 public class WmCommonsDataUtil {
     private static Call<MwJsonObject> commonsQueryResponse;
     private static Call<RestfulJsonObject> wikipediaQueryResponse;
+    private static Call<ResponseBody> audioStreamQueryResponse;
 
     public static void getRandomAudio(final String categoryTitle, final RandomAudioCallback callback){
         commonsQueryResponse = CommonsRetrofitServiceCache.getService().getRandomAudio(categoryTitle);
@@ -97,4 +109,124 @@ public class WmCommonsDataUtil {
         });
     }
 
+    public static void getAudioStreams(final AudioStreamCompletedCallback callback, String url, final Socket client, final File cacheRefference){
+        audioStreamQueryResponse = RandomAudioServiceCache.getService().getAudioStreams(url);
+        audioStreamQueryResponse.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                writeResponseBodyToSocket(response.body(), client, cacheRefference);
+                callback.onSuccessAudioStream();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                callback.onErrorAudioStream();
+            }
+        });
+
+    };
+
+    private static void writeResponseBodyToSocket(ResponseBody responseBody, Socket client, File cacheRefference){
+        //File outputDir = context.getCacheDir();
+        try {
+            File file = File.createTempFile("prefix", "extension", cacheRefference);
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+            OutputStream fileOutputStream = null;
+
+            try {
+                byte[] fileReader = new byte[4096];
+
+                long fileSize = responseBody.contentLength();
+                long fileSizeDownloaded = 0;
+
+                inputStream = responseBody.byteStream();
+                outputStream = client.getOutputStream();
+                fileOutputStream = new FileOutputStream(file);
+
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read == -1) {
+                        break;
+                    }
+
+                    outputStream.write(fileReader, 0, read);
+                    fileOutputStream.write(fileReader, 0, read);
+
+
+                    fileSizeDownloaded += read;
+
+                    Log.d(TAG, "file download: " + fileSizeDownloaded + " of " + fileSize);
+                }
+
+                outputStream.flush();
+
+                return;
+            } catch (IOException e) {
+                return;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        } catch (IOException e) {
+            return;
+        }
+    }
+    /*
+    private boolean writeResponseBodyToDisk(ResponseBody body) {
+        try {
+            // todo change the file location/name according to your needs
+            File futureStudioIconFile = new File(getExternalFilesDir(null) + File.separator + "Future Studio Icon.png");
+
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+
+            try {
+                byte[] fileReader = new byte[4096];
+
+                long fileSize = body.contentLength();
+                long fileSizeDownloaded = 0;
+
+                inputStream = body.byteStream();
+                outputStream = new FileOutputStream(futureStudioIconFile);
+
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read == -1) {
+                        break;
+                    }
+
+                    outputStream.write(fileReader, 0, read);
+
+                    fileSizeDownloaded += read;
+
+                    Log.d(TAG, "file download: " + fileSizeDownloaded + " of " + fileSize);
+                }
+
+                outputStream.flush();
+
+                return true;
+            } catch (IOException e) {
+                return false;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
+    */
 }

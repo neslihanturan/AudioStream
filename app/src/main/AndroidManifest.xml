@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
 
     <application
@@ -24,7 +25,8 @@
 
         </activity>
         <service android:enabled="true" android:name=".service.BackgroundService" />
-        <receiver android:name=".main.MusicIntentReceiver">
+        <service android:enabled="true" android:name=".service.CacheOrganizerService" />
+        <receiver android:name=".service.MusicIntentReceiver">
             <intent-filter>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
                 <action android:name="nes.com.audiostreamer.PLAY" />

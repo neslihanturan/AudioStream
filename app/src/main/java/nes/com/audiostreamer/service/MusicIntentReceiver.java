@@ -1,4 +1,4 @@
-package nes.com.audiostreamer.main;
+package nes.com.audiostreamer.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import nes.com.audiostreamer.main.Constant;
 import nes.com.audiostreamer.model.mediaplayer.SingleMediaPlayer;
 import nes.com.audiostreamer.service.BackgroundService;
 import nes.com.audiostreamer.util.MediaPlayerController;

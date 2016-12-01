@@ -55,7 +55,7 @@ public class BackgroundService extends Service implements AudioManager.OnAudioFo
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel,
                         "Close", closePendingIntent)
                 .build();
-        
+
 
         startForeground(Constant.NOTIFICATION_ID, notification);
     }

@@ -14,6 +14,7 @@ import nes.com.audiostreamer.model.gson.MwJsonObject;
 import nes.com.audiostreamer.server.service.MwAPIInterface;
 import nes.com.audiostreamer.server.callback.RandomCategoryCallback;
 import nes.com.audiostreamer.server.callback.RandomSummaryCallback;
+import nes.com.audiostreamer.service.CacheOrganizerService;
 import nes.com.audiostreamer.util.data.WmCommonsDataUtil;
 import retrofit2.Call;
 
@@ -46,6 +47,12 @@ public class SplashActivity extends Activity implements RandomCategoryCallback, 
         startActivity(intent);
         finish();
     }
+    public void startOrganizerService(){
+        Intent intent = new Intent(SplashActivity.this, CacheOrganizerService.class);
+        intent.putStringArrayListExtra("category_list", categoryList);
+        this.startService(intent);
+        //finish();
+    }
     private void replaceToast(String message) {
         if (toast != null) {
             toast.cancel();
@@ -57,6 +64,7 @@ public class SplashActivity extends Activity implements RandomCategoryCallback, 
     @Override
     public void onSuccessCommonsCategoryData(ArrayList<String> categoryList) {
         this.categoryList = categoryList;
+        startOrganizerService();
         startApplication();
     }
 
