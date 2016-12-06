@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import nes.com.audiostreamer.util.MediaPlayerController;
 import nes.com.audiostreamer.util.data.WmCommonsDataUtil;
 
 public class MainActivity extends AppCompatActivity implements MediaPlayerCallback, RandomAudioCallback, ProxyStreamReadyCallback {
+    private static final String LOG_TAG = MainActivity.class.getName();
     private List<String> categoryList;
     private FloatingActionButton playButton;
     private FloatingActionButton nextButton;
@@ -40,11 +42,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
     private Intent serviceIntent;
     private Context context;
     private Toast toast;
-    private boolean isPlaying = false;
+    public static boolean isPlaying = false;
 
     public static SeekBar seekBar;
     public static Handler handler;
-    public StreamProxy streamProxy;
+    //public StreamProxy streamProxy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
         handler = new Handler();
         serviceIntent = new Intent(MainActivity.this, BackgroundService.class);
         categoryList = getIntent().getStringArrayListExtra("category_list");
-        streamProxy = new StreamProxy(context);
+        //streamProxy = new StreamProxy(context);
         MediaPlayerController.delegate = this;
         initViews();
         setListeners();
@@ -103,16 +105,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
     }
     public void playNextSong(){
         lockPlayer();
-        //WmCommonsDataUtil.getRandomAudio(getRandomCategory(),this);
-        CacheOrganizerService.partOfAudioMRUCache.getCachedItem()
+        WmCommonsDataUtil.getRandomAudio(getRandomCategory(),this);
+        CacheOrganizerService.partOfAudioMRUCache.printAll();
 
         //rest part of operation is onSuccessCommonsCategoryData of getRandomAudio method
     }
     public void lockPlayer(){
+        isPlaying = true;
         playButton.setClickable(false);
         nextButton.setClickable(false);
     }
     public void unlockPlayer(){
+        isPlaying = false;
         playButton.setClickable(true);
         nextButton.setClickable(true);
     }
@@ -197,14 +201,24 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
                 WmCommonsDataUtil.getRandomAudio(getRandomCategory(),this);     //if category is empty, find new category
             }
 
-            streamProxy.start(this.audioFile.getUrl());     //after this line code waits until ProxyStreamReady
+
+            if(isPlaying){
+                MediaPlayerController.changeSong(String.format("http://127.0.0.1:%d/%s",
+                        CacheOrganizerService.streamProxy.getPort(), this.audioFile.getUrl()));
+                MediaPlayerController.play(String.format("http://127.0.0.1:%d/%s",
+                        CacheOrganizerService.streamProxy.getPort(), this.audioFile.getUrl()));
+            }
+            //streamProxy.start(this.audioFile.getUrl());     //after this line code waits until ProxyStreamReady
+            //CacheOrganizerService.partOfAudioMRUCache.printAll();
+            //MediaPlayerController.changeSong("file"+CacheOrganizerService.partOfAudioMRUCache.getCachedItem(CacheOrganizerService.partOfAudioMRUCache.getLastKey()).getUrl());
+            //MediaPlayerController.play("file"+CacheOrganizerService.partOfAudioMRUCache.getCachedItem(CacheOrganizerService.partOfAudioMRUCache.getLastKey()).getUrl());
             //MediaPlayerController.changeSong(String.format("http://127.0.0.1:%d/%s",
             //        streamProxy.getPort(), this.audioFile.getUrl()));
             //MediaPlayerController.play(String.format("http://127.0.0.1:%d/%s",
             //        streamProxy.getPort(), this.audioFile.getUrl()));
-            MediaPlayerController.changeSong(this.audioFile.getUrl());
-            MediaPlayerController.play(this.audioFile.getUrl());
-        } catch (IOException e) {
+            //MediaPlayerController.changeSong(this.audioFile.getUrl());
+            //MediaPlayerController.play(this.audioFile.getUrl());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -217,19 +231,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerCallba
 
     @Override
     public void onProxyStreamReady() {
-        try {
-            File cahceRefference = context.getCacheDir();
-            File file = File.createTempFile("prefix", "extension", cahceRefference);
-            FileInputStream inputStream = new FileInputStream(file);
-            MediaPlayerController.changeSong(inputStream.getFD());
-            MediaPlayerController.play(inputStream.getFD());
 
-            //MediaPlayerController.changeSong(String.format("http://127.0.0.1:%d/%s",
-            //        streamProxy.getPort(), this.audioFile.getUrl()));
-            //MediaPlayerController.play(String.format("http://127.0.0.1:%d/%s",
-             //       streamProxy.getPort(), this.audioFile.getUrl()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
+
 }

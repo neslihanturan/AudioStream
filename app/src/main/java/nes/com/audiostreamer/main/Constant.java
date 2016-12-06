@@ -17,4 +17,8 @@ public class Constant {
     public static final String WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/";
     public static final String NETWORK_FAILURE_MESSAGE = "Can not connect to network";
     public static final String NETWORK_SUCCESS_MESSAGE = "Connected to network";
+    public static final int CACHE_NOT_READY = 0;
+    public static final int CACHE_PREPARING = 1;
+    public static final int CACHE_READY = 7;
+    public static final int CACHE_IS_USED = 3;
 }
